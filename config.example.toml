@@ -1,0 +1,12 @@
+# Change this to http://localhost for local testing
+# MAKE SURE THERE IS NO TRAILING SLASH
+# a trailing slash will fuck this up like you've never seen :upside_down:
+host = "https://scripty.org"
+
+[oauth]
+# this set is invalid, don't bother trying to use it
+client_id = 811652199100317726
+client_secret = "HiJSr_gpDuIOLLcqizGVwJJ2ZgDnr4fW"
+permissions = 395744504896
+invite_scopes = ["identify", "applications.commands", "bot"]
+verify_scopes = ["identify", "connections"]
