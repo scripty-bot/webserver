@@ -2,7 +2,6 @@
 # MAKE SURE THERE IS NO TRAILING SLASH
 # a trailing slash will fuck this up like you've never seen :upside_down:
 
-
 host = "http://localhost"
 port = 8080
 
