@@ -1,0 +1,15 @@
+# Change this to http://localhost for local testing
+# MAKE SURE THERE IS NO TRAILING SLASH
+# a trailing slash will fuck this up like you've never seen :upside_down:
+
+
+host = "http://localhost"
+port = 8080
+
+[oauth]
+# this set is invalid, don't bother trying to use it
+client_id = 879229540663193620
+client_secret = "VtDe8OqdaMqv0Z0JXDNRMJ05ojDeDl6S"
+permissions = 395744504896
+invite_scopes = ["identify", "applications.commands", "bot"]
+verify_scopes = ["identify", "connections"]

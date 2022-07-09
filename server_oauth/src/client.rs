@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use oauth2::basic::{BasicClient, BasicErrorResponse, BasicErrorResponseType, BasicTokenType};
 use oauth2::reqwest::async_http_client;
 use oauth2::{
@@ -5,15 +7,14 @@ use oauth2::{
     RequestTokenError, StandardErrorResponse, StandardTokenResponse, TokenUrl,
 };
 use once_cell::sync::OnceCell;
+use server_config::Config;
 
 use crate::response::{SpecialClient, SpecialTokenResponse};
 
 static INVITE_OAUTH_CLIENT: OnceCell<SpecialClient> = OnceCell::new();
 static VERIFY_OAUTH_CLIENT: OnceCell<BasicClient> = OnceCell::new();
 
-pub fn init_oauth_clients() {
-    let cfg = server_config::get_cfg();
-
+pub fn init_oauth_clients(cfg: Arc<Config>) {
     let client_id = cfg.oauth.client_id;
     let client_secret = &cfg.oauth.client_secret;
 
