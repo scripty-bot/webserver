@@ -374,6 +374,7 @@ def webhook_received():
             "status": data_object["status"],
             "plan_ends_at": data_object["cancel_at"],
             "current_period_start": data_object["current_period_start"],
+            "cancel_at_period_end": data_object["cancel_at_period_end"],
         }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
 
     elif event_type == 'customer.subscription.deleted':
