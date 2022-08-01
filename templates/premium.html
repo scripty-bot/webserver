@@ -49,6 +49,7 @@
         </p>
         <a class="btn" style="float: none" href="{{ url_for('premium_stripe_redirect') }}">Manage Subscription</a>
         {% else %}
+            <div style="overflow-x: auto">
             <table align="center">
             <tr>
                 <th></th>
@@ -83,6 +84,7 @@
                     </tr>
                 {% endfor %}
             </table>
+            </div>
         {% endif %}
     </div>
 
