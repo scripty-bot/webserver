@@ -310,7 +310,7 @@ def webhook_received():
         session.post(f"{config.BOT_API_URL}/premium/trial_end", json={
             "discord_id": discord_id,
             "trial_end": data_object["current_period_end"],
-        }).raise_for_status()
+        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
 
     elif event_type == 'customer.subscription.created':
         print('Subscription created')
@@ -343,7 +343,7 @@ def webhook_received():
             "discord_id": discord_id,
             "tier": tier_int,
             "status": data_object["status"],
-        }).raise_for_status()
+        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
 
     elif event_type == 'customer.subscription.updated':
         print('Subscription created', event.id)
@@ -374,7 +374,7 @@ def webhook_received():
             "status": data_object["status"],
             "plan_ends_at": data_object["cancel_at"],
             "current_period_start": data_object["current_period_start"],
-        }).raise_for_status()
+        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
 
     elif event_type == 'customer.subscription.deleted':
         print('Subscription canceled', event.id)
@@ -410,7 +410,7 @@ def webhook_received():
             "tier": tier_int,
             "status": data_object["status"],
             "plan_ends_at": ends_at if ends_at else None,
-        }).raise_for_status()
+        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
 
     elif event_type == "radar.early_fraud_warning":
         print('Early fraud warning', event.id)
@@ -432,7 +432,7 @@ def webhook_received():
             "charge_id": data_object['charge'],
             "reason": data_object["fraud_type"],
             "actionable": data_object["actionable"],
-        }).raise_for_status()
+        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
 
     elif event_type in ["invoice.created", "invoice.paid", "invoice.payment_failed", "invoice.payment_action_required", "invoice.upcoming"]:
         print('Invoice', event.id)
@@ -471,7 +471,11 @@ def webhook_received():
 
         # send this to the bot
         event_type.replace(".", "_")
-        session.post(f"{config.BOT_API_URL}/premium/{event_type}", json=json_to_send).raise_for_status()
+        session.post(
+            f"{config.BOT_API_URL}/premium/{event_type}",
+            json=json_to_send,
+            headers={"Authorization": config.BOT_API_TOKEN}
+        ).raise_for_status()
 
     return jsonify({'status': 'success'})
 
