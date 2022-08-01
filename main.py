@@ -299,7 +299,7 @@ def webhook_received():
         user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
         if user_db is None:
             if not is_live:
-                discord_id = 0
+                discord_id = 661660243033456652
             else:
                 return jsonify({'status': 'success'})
         else:
@@ -324,7 +324,7 @@ def webhook_received():
         user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
         if user_db is None:
             if not is_live:
-                discord_id = 0
+                discord_id = 661660243033456652
             else:
                 return jsonify({'status': 'success'})
         else:
@@ -356,7 +356,7 @@ def webhook_received():
         user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
         if user_db is None:
             if not is_live:
-                discord_id = 0
+                discord_id = 661660243033456652
             else:
                 return jsonify({'status': 'success'})
         else:
@@ -388,7 +388,7 @@ def webhook_received():
         user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
         if user_db is None:
             if not is_live:
-                discord_id = 0
+                discord_id = 661660243033456652
             else:
                 return jsonify({'status': 'success'})
         else:
@@ -444,7 +444,7 @@ def webhook_received():
         user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
         if user_db is None:
             if not is_live:
-                discord_id = 0
+                discord_id = 661660243033456652
             else:
                 return jsonify({'status': 'success'})
         else:
