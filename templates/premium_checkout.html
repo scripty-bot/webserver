@@ -85,22 +85,22 @@
         </p>
 
         <form id="payment-form" style="width: 100%; float: none;" method="post" action="{{ url_for('premium_checkout_redirect') }}">
-            <input type="text" name="full_name" placeholder="Full Name (required)" required class="form-input-disabled form-input form-input-1">
+            <input type="text" autocomplete="name" name="full_name" placeholder="Full Name (required)" required class="form-input-disabled form-input form-input-1">
             <br>Don't worry, we don't send any mail to this address.<br>
-            <input type="text" name="address_line_1" placeholder="Address Line 1 (required)" required class="form-input-disabled form-input form-input-1">
-            <input type="text" name="address_line_2" placeholder="Address Line 2" class="form-input-disabled form-input form-input-1">
-            <input type="text" name="city" placeholder="City (required)" required class="form-input-disabled form-input form-input-2">
-            <select name="province" required class="form-input-disabled form-input form-input-2" id="province-dropdown">
+            <input type="text" autocomplete="address-line1" name="address_line_1" placeholder="Address Line 1 (required)" required class="form-input-disabled form-input form-input-1">
+            <input type="text" autocomplete="address-line2" name="address_line_2" placeholder="Address Line 2" class="form-input-disabled form-input form-input-1">
+            <input type="text" autocomplete="address-level2" name="city" placeholder="City (required)" required class="form-input-disabled form-input form-input-2">
+            <select name="province" autocomplete="address-level1" required class="form-input-disabled form-input form-input-2" id="province-dropdown">
                 <option value="None" disabled selected class="form-input-disabled">-- Select a country --</option>
             </select>
-            <input type="text" name="postal_code" placeholder="Postal Code" required class="form-input-disabled form-input form-input-2" >
-            <select name="country" class="form-input-disabled form-input form-input-2" id="country_dropdown">
+            <input type="text" autocomplete="postal-code" name="postal_code" placeholder="Postal Code" required class="form-input-disabled form-input form-input-2" >
+            <select name="country" autocomplete="country-name" class="form-input-disabled form-input form-input-2" id="country_dropdown">
                 <option value="None" disabled selected class="form-input-disabled">-- Select a country --</option>
                 {% for country in countries %}
                     <option value="{{ country.code }}" class="form-input-disabled">{{ country.name }}</option>
                 {% endfor %}
             </select>
-            <input type="tel" name="phone_number" placeholder="Phone Number" class="form-input-disabled form-input form-input-1">
+            <input type="tel" autocomplete="tel" name="phone_number" placeholder="Phone Number" class="form-input-disabled form-input form-input-1">
 
             <iframe src="https://scripty.org/terms" loading="lazy" style="height: 50vh; width: 100%; border: none; margin-top: 16px"></iframe>
             <label>
