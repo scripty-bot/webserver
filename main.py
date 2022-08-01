@@ -373,6 +373,7 @@ def webhook_received():
             "tier": tier_int,
             "status": data_object["status"],
             "plan_ends_at": data_object["cancel_at"],
+            "current_period_start": data_object["current_period_start"],
         }).raise_for_status()
 
     elif event_type == 'customer.subscription.deleted':
