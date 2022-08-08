@@ -35,6 +35,23 @@ discord = DiscordOAuth2Session(app)
 db = SQLAlchemy(app)
 
 
+def replace_item(obj, key, replace_value):
+    """
+    Recursively replace a value in a dictionary.
+
+    :param obj: The dictionary object.
+    :param key: The key that contains the value to replace.
+    :param replace_value: The value to replace in the key.
+    :return: The updated dictionary.
+    """
+    for k, v in obj.items():
+        if isinstance(v, dict):
+            obj[k] = replace_item(v, key, replace_value)
+    if key in obj:
+        obj[key] = replace_value
+    return obj
+
+
 # generate the product ID -> tier lookup table
 PRODUCT_ID_TO_TIER = {
     tier["product_id"]: tier["level_int"] for tier in config.TIERS
@@ -289,6 +306,9 @@ def webhook_received():
 
     print('event ' + event_type)
 
+    discord_id = None
+    tier_id = None
+
     if event_type == 'customer.subscription.trial_will_end':
         print('Subscription trial will end at', data_object["current_period_end"])
         print("Customer ID", data_object['customer'])
@@ -304,13 +324,6 @@ def webhook_received():
                 return jsonify({'status': 'success'})
         else:
             discord_id = user_db.discord_id
-
-        # Update the user's subscription
-        # The bot gets the user's Discord ID, and the Unix timestamp the subscription ends at
-        session.post(f"{config.BOT_API_URL}/premium/trial_end", json={
-            "discord_id": discord_id,
-            "trial_end": data_object["current_period_end"],
-        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
 
     elif event_type == 'customer.subscription.created':
         print('Subscription created')
@@ -335,15 +348,7 @@ def webhook_received():
             discord_id = user_db.discord_id
 
         # Calculate the tier of the subscription
-        tier_int = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
-
-        # Update the user's subscription
-        # The bot gets the user's Discord ID, the tier the user is subscribed to, and the current subscription status
-        session.post(f"{config.BOT_API_URL}/premium/subscription_create", json={
-            "discord_id": discord_id,
-            "tier": tier_int,
-            "status": data_object["status"],
-        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
+        tier_id = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
 
     elif event_type == 'customer.subscription.updated':
         print('Subscription created', event.id)
@@ -363,19 +368,7 @@ def webhook_received():
             discord_id = user_db.discord_id
 
         # Calculate the tier of the subscription
-        tier_int = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
-
-        # Update the user's subscription
-        # The bot gets the user's Discord ID, the tier the user is subscribed to, the current subscription status,
-        # and if it exists, the expiry timestamp of the current tier.
-        session.post(f"{config.BOT_API_URL}/premium/subscription_update", json={
-            "discord_id": discord_id,
-            "tier": tier_int,
-            "status": data_object["status"],
-            "plan_ends_at": data_object["cancel_at"],
-            "current_period_start": data_object["current_period_start"],
-            "cancel_at_period_end": data_object["cancel_at_period_end"],
-        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
+        tier_id = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
 
     elif event_type == 'customer.subscription.deleted':
         print('Subscription canceled', event.id)
@@ -399,19 +392,7 @@ def webhook_received():
             discord_id = user_db.discord_id
 
         # Calculate the tier of the subscription
-        tier_int = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
-
-        ends_at = data_object["cancel_at"]
-
-        # Update the user's subscription
-        # The bot gets the user's Discord ID, the tier the user is subscribed to, the current subscription status,
-        # and if it exists, the expiry timestamp of the current tier.
-        session.post(f"{config.BOT_API_URL}/premium/subscription_delete", json={
-            "discord_id": discord_id,
-            "tier": tier_int,
-            "status": data_object["status"],
-            "plan_ends_at": ends_at if ends_at else None,
-        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
+        tier_id = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
 
     elif event_type == "radar.early_fraud_warning":
         print('Early fraud warning', event.id)
@@ -429,54 +410,15 @@ def webhook_received():
                     user_db.stripe_subscription_id = None
                     db.session.commit()
 
-        session.post(f"{config.BOT_API_URL}/premium/early_fraud_warning", json={
-            "charge_id": data_object['charge'],
-            "reason": data_object["fraud_type"],
-            "actionable": data_object["actionable"],
-        }, headers={"Authorization": config.BOT_API_TOKEN}).raise_for_status()
-
-    elif event_type in ["invoice.created", "invoice.paid", "invoice.payment_failed", "invoice.payment_action_required", "invoice.upcoming"]:
-        print('Invoice', event.id)
-        print("Customer ID", data_object['customer'])
-        print("Status", data_object["status"])
-
-        # Get the user from the DB
-        # If we're not in live mode, fake a user ID of 0 if none exists
-        user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
-        if user_db is None:
-            if not is_live:
-                discord_id = 661660243033456652
-            else:
-                return jsonify({'status': 'success'})
-        else:
-            discord_id = user_db.discord_id
-
-        # format the cost of the invoice in the correct currency
-        cost = data_object["amount_remaining"] / 100
-        currency = data_object["currency"]
-        fmt_cost = format_currency(cost, currency, locale='en')
-
-        # get the timestamp when the invoice will next be attempted for payment
-        next_attempt = data_object["next_payment_attempt"]
-
-        # and also find the invoice URL
-        invoice_url = data_object.get("hosted_invoice_url")
-
-        json_to_send = {
-            "discord_id": discord_id,
-            "status": data_object["status"],
-            "cost": fmt_cost,
-            "next_attempt": next_attempt,
-            "invoice_url": invoice_url,
-        }
-
-        # send this to the bot
-        event_type.replace(".", "_")
+    if discord_id is not None:
+        replace_item(event, "customer", str(discord_id))
+        if tier_id is not None:
+            replace_item(event, "product", str(tier_id))
         session.post(
-            f"{config.BOT_API_URL}/premium/{event_type}",
-            json=json_to_send,
+            f"{config.BOT_API_URL}/premium/stripe_webhook",
+            json=event,
             headers={"Authorization": config.BOT_API_TOKEN}
-        ).raise_for_status()
+        )
 
     return jsonify({'status': 'success'})
 
