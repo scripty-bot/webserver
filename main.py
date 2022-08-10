@@ -307,7 +307,6 @@ def webhook_received():
     print('event ' + event_type)
 
     discord_id = None
-    tier_id = None
 
     if event_type == 'customer.subscription.trial_will_end':
         print('Subscription trial will end at', data_object["current_period_end"])
@@ -347,9 +346,6 @@ def webhook_received():
             db.session.commit()
             discord_id = user_db.discord_id
 
-        # Calculate the tier of the subscription
-        tier_id = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
-
     elif event_type == 'customer.subscription.updated':
         print('Subscription created', event.id)
         print("Product ID", data_object['plan']['product'])
@@ -366,9 +362,6 @@ def webhook_received():
                 return jsonify({'status': 'success'})
         else:
             discord_id = user_db.discord_id
-
-        # Calculate the tier of the subscription
-        tier_id = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
 
     elif event_type == 'customer.subscription.deleted':
         print('Subscription canceled', event.id)
@@ -391,9 +384,6 @@ def webhook_received():
             db.session.commit()
             discord_id = user_db.discord_id
 
-        # Calculate the tier of the subscription
-        tier_id = PRODUCT_ID_TO_TIER[data_object['plan']['product']]
-
     elif event_type == "radar.early_fraud_warning":
         print('Early fraud warning', event.id)
         print("Charge ID", data_object['charge'])
@@ -412,8 +402,6 @@ def webhook_received():
 
     if discord_id is not None:
         replace_item(event, "customer", str(discord_id))
-        if tier_id is not None:
-            replace_item(event, "product", str(tier_id))
         session.post(
             f"{config.BOT_API_URL}/premium/stripe_webhook",
             json=event,
