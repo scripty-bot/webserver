@@ -402,7 +402,7 @@ def webhook_received():
 
     if discord_id is not None:
         print(f"Discord ID was set {discord_id}, firing bot notification")
-        replace_item(event, "customer", str(discord_id))
+        replace_item(event, "customer", f"cus_{discord_id}")
         session.post(
             f"{config.BOT_API_URL}/premium/stripe_webhook",
             json=event,
