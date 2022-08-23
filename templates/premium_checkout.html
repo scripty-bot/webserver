@@ -46,17 +46,25 @@
 </head>
 
 <body>
-<div class="body">
-    <header>
-        <div class="header_title">
-            Scripty
+<div class="container is-widescreen">
+    <nav class="navbar is-transparent" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="https://scripty.org/"><h1>Scripty</h1></a>
+
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="main-navbar">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
         </div>
-        <div class="header_links">
-            <a href="https://scripty.org/" class="dyn_btn">Home</a><span class="btn_bullet">&nbsp;•&nbsp;</span>
-            <a href="https://scripty.org/invite.html" class="dyn_btn">Invite</a><span class="btn_bullet">&nbsp;•&nbsp;</span>
-            <a href="https://scripty.org/about.html" class="dyn_btn">About</a>
+        <div id="main-navbar" class="navbar-menu">
+            <div class="navbar-start">
+                <a href="https://scripty.org/invite.html" class="navbar-item">Invite</a>
+                <a href="https://scripty.org/about.html" class="navbar-item">About</a>
+            </div>
+            <div class="navbar-end"></div>
         </div>
-    </header>
+    </nav>
 
     <div id="content">
     <h1>Checkout</h1>

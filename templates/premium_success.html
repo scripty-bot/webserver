@@ -15,34 +15,40 @@
 </head>
 
 <body>
-<div class="body">
-    <header>
-        <div class="header_title">
-            Scripty
+<div class="container is-widescreen">
+    <nav class="navbar is-transparent" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="https://scripty.org/"><h1>Scripty</h1></a>
+
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="main-navbar">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
         </div>
-        <div class="header_links">
-            <a href="https://scripty.org/" class="dyn_btn">Home</a><span class="btn_bullet">&nbsp;•&nbsp;</span>
-            <a href="https://scripty.org/invite.html" class="dyn_btn">Invite</a><span class="btn_bullet">&nbsp;•&nbsp;</span>
-            <a href="https://scripty.org/about.html" class="dyn_btn">About</a>
+        <div id="main-navbar" class="navbar-menu">
+            <div class="navbar-start">
+                <a href="https://scripty.org/invite.html" class="navbar-item">Invite</a>
+                <a href="https://scripty.org/about.html" class="navbar-item">About</a>
+            </div>
+            <div class="navbar-end"></div>
         </div>
-    </header>
+    </nav>
 
-    <div id="content">
-        <h1>Subscription Success!</h1>
+    <h1>Subscription Success!</h1>
 
-        <p>
-            You have successfully subscribed to Scripty Premium!<br>
-            Thanks for supporting us!<br><br>
+    <p>
+        You have successfully subscribed to Scripty Premium!<br>
+        Thanks for supporting us!<br><br>
 
-            You will get a DM from the bot once your order has been processed.<br>
-            If you used a credit/debit card, or Apple/Google Pay, this DM should already be in your inbox.
-            If it's not, DM the bot and ask what happened.<br>
-            Any other payment mediums may take anywhere from a few minutes to a few days to be processed.<br><br>
+        You will get a DM from the bot once your order has been processed.<br>
+        If you used a credit/debit card, or Apple/Google Pay, this DM should already be in your inbox.
+        If it's not, DM the bot and ask what happened.<br>
+        Any other payment mediums may take anywhere from a few minutes to a few days to be processed.<br><br>
 
-            <3
-        </p>
-        <a class="btn" style="float: none" href="{{ url_for('premium_index') }}">Continue</a>
-    </div>
+        <3
+    </p>
+    <a class="button is-success" href="{{ url_for('premium_index') }}">Continue</a>
 
     <footer>
         <hr>
