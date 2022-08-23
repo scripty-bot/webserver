@@ -352,16 +352,47 @@ def webhook_received():
         print("Customer ID", data_object['customer'])
         print("Status", data_object["status"])
 
+        # if data.event.previous_attributes contains only *exactly* current_period_start, current_period_end,
+        # and latest_invoice, then the subscription was renewed, and we don't need to send the webhook at all
+        is_renewed = False
+        if len(data.event.previous_attributes) == 3:
+            try:
+                _ = data.event.previous_attributes["current_period_start"]
+            except KeyError:
+                pass
+            else:
+                try:
+                    _ = data.event.previous_attributes["current_period_end"]
+                except KeyError:
+                    pass
+                else:
+                    try:
+                        _ = data.event.previous_attributes["latest_invoice"]
+                    except KeyError:
+                        pass
+                    else:
+                        is_renewed = True
+
         # Get the user from the DB
         # If we're not in live mode, fake a user ID of 0 if none exists
         user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
         if user_db is None:
             if not is_live:
-                discord_id = 661660243033456652
+                if is_renewed:
+                    # don't send the webhook if the subscription was renewed
+                    print("not sending webhook because subscription was renewed")
+                else:
+                    # subscription was not renewed, so send the webhook
+                    discord_id = 661660243033456652
             else:
+                # in live mode, and no user exists, so don't send the webhook
+                print("no user found for customer id", data_object['customer'])
                 return jsonify({'status': 'success'})
-        else:
+        elif not is_renewed:
+            # customer was found, and subscription was not renewed, so send the webhook
             discord_id = user_db.discord_id
+        else:
+            print("not sending webhook because subscription was renewed")
 
     elif event_type == 'customer.subscription.deleted':
         print('Subscription canceled', event.id)
