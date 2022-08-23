@@ -352,22 +352,22 @@ def webhook_received():
         print("Customer ID", data_object['customer'])
         print("Status", data_object["status"])
 
-        # if data["event"]["previous_attributes"] contains only *exactly* current_period_start, current_period_end,
+        # if data["previous_attributes"] contains only *exactly* current_period_start, current_period_end,
         # and latest_invoice, then the subscription was renewed, and we don't need to send the webhook at all
         is_renewed = False
-        if len(data["event"]["previous_attributes"]) == 3:
+        if len(data["previous_attributes"]) == 3:
             try:
-                _ = data["event"]["previous_attributes"]["current_period_start"]
+                _ = data["previous_attributes"]["current_period_start"]
             except KeyError:
                 pass
             else:
                 try:
-                    _ = data["event"]["previous_attributes"]["current_period_end"]
+                    _ = data["previous_attributes"]["current_period_end"]
                 except KeyError:
                     pass
                 else:
                     try:
-                        _ = data["event"]["previous_attributes"]["latest_invoice"]
+                        _ = data["previous_attributes"]["latest_invoice"]
                     except KeyError:
                         pass
                     else:
