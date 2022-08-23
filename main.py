@@ -401,12 +401,15 @@ def webhook_received():
                     db.session.commit()
 
     if discord_id is not None:
+        print(f"Discord ID was set {discord_id}, firing bot notification")
         replace_item(event, "customer", str(discord_id))
         session.post(
             f"{config.BOT_API_URL}/premium/stripe_webhook",
             json=event,
             headers={"Authorization": config.BOT_API_TOKEN}
         )
+    else:
+        print("No Discord ID found, not firing bot notification")
 
     return jsonify({'status': 'success'})
 
