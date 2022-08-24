@@ -97,10 +97,19 @@
                 </div>
             </div>
             <div class="field">
-                <label class="label">City</label>
+                <label class="label">Country</label>
                 <div class="control">
-                    <input type="text" autocomplete="address-level2" name="city" placeholder="City (required)" required
-                           disabled class="input form-input-disabled">
+                    <div class="select">
+                        <select name="country" autocomplete="country-name" class="form-input-disabled"
+                                id="country_dropdown">
+                            <option value="None" disabled selected class="form-input-disabled">-- Select a country --
+                            </option>
+                            {% for country in countries %}
+                                <option value="{{ country.code }}"
+                                        class="form-input-disabled">{{ country.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="field">
@@ -116,26 +125,17 @@
                 </div>
             </div>
             <div class="field">
+                <label class="label">City</label>
+                <div class="control">
+                    <input type="text" autocomplete="address-level2" name="city" placeholder="City (required)" required
+                           disabled class="input form-input-disabled">
+                </div>
+            </div>
+            <div class="field">
                 <label class="label">Postal Code</label>
                 <div class="control">
                     <input type="text" autocomplete="postal-code" name="postal_code" placeholder="Postal Code" required
                            class="input form-input-disabled">
-                </div>
-            </div>
-            <div class="field">
-                <label class="label">Country</label>
-                <div class="control">
-                    <div class="select">
-                        <select name="country" autocomplete="country-name" class="form-input-disabled"
-                                id="country_dropdown">
-                            <option value="None" disabled selected class="form-input-disabled">-- Select a country --
-                            </option>
-                            {% for country in countries %}
-                                <option value="{{ country.code }}"
-                                        class="form-input-disabled">{{ country.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
                 </div>
             </div>
             <div class="field">
