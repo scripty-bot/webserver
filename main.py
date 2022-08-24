@@ -82,7 +82,7 @@ class User(db.Model):
     """
     # noinspection SpellCheckingInspection
     __tablename__ = "users"
-    discord_id = db.Column(db.Integer, primary_key=True)
+    discord_id = db.Column(db.BigInteger, primary_key=True)
     stripe_customer_id = db.Column(db.String)
     stripe_subscription_id = db.Column(db.String)
     subscribed = db.Column(db.Boolean)
