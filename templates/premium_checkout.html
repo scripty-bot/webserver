@@ -5,8 +5,10 @@
     <meta charset="utf-8">
     <title>Scripty | Checkout</title>
 
-    <link rel="preload" href="https://scripty.org/assets/jb_mono/woff2/jb.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="preload" href="https://scripty.org/assets/jb_mono/woff2/jb_bold.woff2" as="font" type="font/woff2" crossorigin="">
+    <link rel="preload" href="https://scripty.org/assets/jb_mono/woff2/jb.woff2" as="font" type="font/woff2"
+          crossorigin="">
+    <link rel="preload" href="https://scripty.org/assets/jb_mono/woff2/jb_bold.woff2" as="font" type="font/woff2"
+          crossorigin="">
     <link rel="preload" href="https://scripty.org/css/main.css" as="style" type="text/css">
     <link rel="preload" href="https://scripty.org/css/jb_mono.css" as="style" type="text/css">
     <link rel="preload" href="https://sa.scripty.org/latest.js" as="script" type="application/javascript">
@@ -21,28 +23,6 @@
     <meta property="og:image" content="https://scripty.org/img/icon-128.webp">
 
     <link rel="stylesheet" href="https://scripty.org/css/main.css">
-
-    <style>
-        .form-input {
-            float: none;
-            border: #555 solid 1px;
-            padding: 4px;
-            margin: 4px;
-            color: #fff;
-            background: rgba(0,0,0,0.0);
-            border-radius: 4px;
-        }
-        .form-input-1 {
-            width: 66%;
-        }
-        .form-input-2 {
-            width: 32%;
-        }
-
-        input[disabled] {
-            color: #444;
-        }
-    </style>
 </head>
 
 <body>
@@ -67,9 +47,9 @@
     </nav>
 
     <div id="content">
-    <h1>Checkout</h1>
-    <h2>Logged in as {{ user }}.</h2>
-    <h3><a href="{{ url_for('logout') }}?redir=/premium">Not you?</a></h3>
+        <h1>Checkout</h1>
+        <h2>Logged in as {{ user }}.</h2>
+        <h3><a href="{{ url_for('logout') }}?redir=/premium">Not you?</a></h3>
         <noscript>
             Heads up: we use JS here to allow dynamic checkout UI elements.<br>
             It's very, very lightweight, and doesn't include any creepy tracking.
@@ -79,11 +59,13 @@
             <b>NOTE:</b> None of the data you enter here will be stored on our servers.
             It is all immediately passed on to Stripe, and then we only store the Customer ID Stripe gives us in return.<br><br>
 
-            We only ask for this data to prevent fraud and abuse of our service. It is not used for any other purpose.<br>
+            We only ask for this data to prevent fraud and abuse of our service. It is not used for any other
+            purpose.<br>
             To reduce the chances of your order being marked as fraud,
             you should enter the exact same information as is on your payment method.<br>
             <b>
-                Entering invalid data is viewed as a very strong sign of fraud and WILL lead to account termination, without refund.
+                Entering invalid data is viewed as a very strong sign of fraud and WILL lead to account termination,
+                without refund.
                 You have been warned.
             </b><br><br>
             <label>
@@ -92,46 +74,105 @@
             </label>
         </p>
 
-        <form id="payment-form" style="width: 100%; float: none;" method="post" action="{{ url_for('premium_checkout_redirect') }}">
-            <input type="text" autocomplete="name" name="full_name" placeholder="Full Name (required)" required class="form-input-disabled form-input form-input-1">
-            <br>Don't worry, we don't send any mail to this address.<br>
-            <input type="text" autocomplete="address-line1" name="address_line_1" placeholder="Address Line 1 (required)" required class="form-input-disabled form-input form-input-1">
-            <input type="text" autocomplete="address-line2" name="address_line_2" placeholder="Address Line 2" class="form-input-disabled form-input form-input-1">
-            <input type="text" autocomplete="address-level2" name="city" placeholder="City (required)" required class="form-input-disabled form-input form-input-2">
-            <select name="province" autocomplete="address-level1" required class="form-input-disabled form-input form-input-2" id="province-dropdown">
-                <option value="None" disabled selected class="form-input-disabled">-- Select a country --</option>
-            </select>
-            <input type="text" autocomplete="postal-code" name="postal_code" placeholder="Postal Code" required class="form-input-disabled form-input form-input-2" >
-            <select name="country" autocomplete="country-name" class="form-input-disabled form-input form-input-2" id="country_dropdown">
-                <option value="None" disabled selected class="form-input-disabled">-- Select a country --</option>
-                {% for country in countries %}
-                    <option value="{{ country.code }}" class="form-input-disabled">{{ country.name }}</option>
-                {% endfor %}
-            </select>
-            <input type="tel" autocomplete="tel" name="phone_number" placeholder="Phone Number" class="form-input-disabled form-input form-input-1">
+        <form id="payment-form" method="post" action="{{ url_for('premium_checkout_redirect') }}">
+            <div class="field">
+                <label class="label">Full Name</label>
+                <div class="control">
+                    <input type="text" autocomplete="name" name="full_name" placeholder="Full Name (required)" required
+                           class="input form-input-disabled">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Address Line 1</label>
+                <div class="control">
+                    <input type="text" autocomplete="address-line1" name="address_line_1"
+                           placeholder="Address Line 1 (required)" required class="input form-input-disabled">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Address Line 2</label>
+                <div class="control">
+                    <input type="text" autocomplete="address-line2" name="address_line_2" placeholder="Address Line 2"
+                           class="input form-input-disabled">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">City</label>
+                <div class="control">
+                    <input type="text" autocomplete="address-level2" name="city" placeholder="City (required)" required
+                           disabled class="input form-input-disabled">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Province</label>
+                <div class="control">
+                    <div class="select">
+                        <select name="province" autocomplete="address-level1" required disabled id="province-dropdown"
+                                class="form-input-disabled">
+                            <option value="None" disabled selected class="form-input-disabled">-- Select a country --
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Postal Code</label>
+                <div class="control">
+                    <input type="text" autocomplete="postal-code" name="postal_code" placeholder="Postal Code" required
+                           class="input form-input-disabled">
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Country</label>
+                <div class="control">
+                    <div class="select">
+                        <select name="country" autocomplete="country-name" class="form-input-disabled"
+                                id="country_dropdown">
+                            <option value="None" disabled selected class="form-input-disabled">-- Select a country --
+                            </option>
+                            {% for country in countries %}
+                                <option value="{{ country.code }}"
+                                        class="form-input-disabled">{{ country.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Phone Number</label>
+                <div class="control">
+                    <input type="tel" autocomplete="tel" name="phone_number" placeholder="Phone Number"
+                           class="input form-input-disabled">
+                </div>
+            </div>
 
-            <iframe src="https://scripty.org/terms" loading="lazy" style="height: 50vh; width: 100%; border: none; margin-top: 16px"></iframe>
-            <label>
-                <input type="checkbox" required disabled class="form-input-disabled"> I have read and agree to the above terms.
-            </label><br>
+            <iframe src="https://scripty.org/terms" loading="lazy"
+                    style="height: 50vh; width: 100%; border: none; margin-top: 16px"></iframe>
+            <div class="field">
+                <div class="control">
+                    <label class="checkbox">
+                        <input type="checkbox" required disabled class="form-input-disabled">
+                        I have read and agree to the above terms.
+                    </label>
+                </div>
+            </div>
 
             <h3>Confirm Your Order</h3>
-        <table align="center" style="margin-bottom: 16px">
-            <tr>
-                <td>Tier</td>
-                <td>{{ tier_name }}</td>
-            </tr>
-            <tr>
-                <td>Price</td>
-                <td>US$ {{ price }}/{{ period }}</td>
-            </tr>
-        </table>
+            <table align="center" style="margin-bottom: 16px">
+                <tr>
+                    <td>Tier</td>
+                    <td>{{ tier_name }}</td>
+                </tr>
+                <tr>
+                    <td>Price</td>
+                    <td>US$ {{ price }}/{{ period }}</td>
+                </tr>
+            </table>
             <input type="hidden" name="lookup_key" value="{{ lookup_key }}">
 
             By clicking this button, you confirm that all the data above is correct to the best of your knowledge.<br>
             <button class="btn" style="float: none; cursor: pointer" type="submit">Submit</button>
         </form>
-
     </div>
 
     <footer>
@@ -142,12 +183,13 @@
 
 <!-- 100% privacy friendly analytics: https://simpleanalytics.com/dash.scripty.org -->
 <script async defer data-collect-dnt="true" src="https://sa.scripty.org/latest.js"></script>
-<noscript><img src="https://sa.scripty.org/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade" /></noscript>
+<noscript><img src="https://sa.scripty.org/noscript.gif?collect-dnt=true" alt=""
+               referrerpolicy="no-referrer-when-downgrade"/></noscript>
 
 <script>
     var noInteracts = document.getElementsByClassName('disabled');
-    [].map.call(noInteracts, function(elem) {
-        elem.addEventListener("keydown", function(e) {
+    [].map.call(noInteracts, function (elem) {
+        elem.addEventListener("keydown", function (e) {
             if (e.keyCode != 9) {
                 e.returnValue = false;
                 return false;
@@ -162,7 +204,8 @@
             fid.disabled = false;
         }
     }
-    document.addEventListener("DOMContentLoaded", function() {
+
+    document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("payment-form").reset();
         document.getElementById("toggle-input-check").checked = false;
         checkbox.addEventListener("change", allowUserInputToForm);
@@ -175,12 +218,12 @@
     const provinceDropdown = document.getElementById("province-dropdown");
     // when the country dropdown changes, make an API request to /api/provinces?country=<country_code> to get the provinces for that country
     // and update the province dropdown with the new options
-    countryDropdown.addEventListener("change", function() {
+    countryDropdown.addEventListener("change", function () {
         const countryCode = countryDropdown.value;
         const url = `{{ url_for('province_list') | safe }}?country=${countryCode}`;
-        fetch(url).then(function(response) {
+        fetch(url).then(function (response) {
             return response.json();
-        }).then(function(data) {
+        }).then(function (data) {
             // delete all existing nodes in the province dropdown
             while (provinceDropdown.firstChild) {
                 provinceDropdown.removeChild(provinceDropdown.firstChild);
@@ -193,7 +236,8 @@
                 option.selected = true;
                 provinceDropdown.appendChild(option);
                 return;
-            };
+            }
+            ;
             for (const province of data) {
                 const option = document.createElement("option");
                 option.value = province;
