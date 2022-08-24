@@ -262,6 +262,7 @@ def premium_checkout_redirect():
             },
         ],
         mode="subscription",
+        allow_promotion_codes=True,
         success_url=config.SITE_URL + "/premium/success?session_id={CHECKOUT_SESSION_ID}",
         cancel_url=config.SITE_URL + "/premium",
         customer=user_db.stripe_customer_id,
