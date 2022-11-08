@@ -11,6 +11,8 @@ import typing
 import uuid
 
 import flask_discord
+import jwt
+import oauthlib.oauth2.rfc6749.errors
 import requests
 from babel.numbers import format_currency
 from flask import Flask, render_template, request, redirect, url_for, json, jsonify, abort, Response
@@ -94,7 +96,6 @@ def auth_flow_map_cleanup():
 
 threading.Thread(target=auth_flow_map_cleanup).start()
 
-
 DISCORD_INVITE_SUCCESS_WEBHOOK = lambda: discord_webhook.DiscordWebhook(
     url=config.DISCORD_INVITE_SUCCESS_WEBHOOK_URL,
     username="Scripty Invites",
@@ -144,7 +145,8 @@ def oauth_invite():
     else:
         auth_flow_id = "None"
 
-    return discord.create_session(scope=["bot", "identify"], permissions=config.BOT_PERMISSIONS_INTEGER, data={"flow_id": auth_flow_id})
+    return discord.create_session(scope=["bot", "identify"], permissions=config.BOT_PERMISSIONS_INTEGER,
+                                  data={"flow_id": auth_flow_id})
 
 
 @app.route("/oauth/callback")
@@ -152,7 +154,12 @@ def oauth_callback():
     """
     Callback from the Discord OAuth2 authorization page.
     """
-    cb = discord.callback()
+    try:
+        cb = discord.callback()
+    except (jwt.exceptions.PyJWTError, oauthlib.oauth2.rfc6749.errors.OAuth2Error):
+        abort(400)
+    # this variable will always be bound as abort() throws an exception
+    # noinspection PyUnboundLocalVariable
     if flow_id := cb.get("flow_id"):
         if flow_id != "None":
             with AUTH_FLOW_MAP_LOCK:
