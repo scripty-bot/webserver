@@ -42,6 +42,11 @@ SECRET_KEY = "secret"
 DATABASE_URI_DEBUG = "sqlite:////tmp/db.sqlite"
 DATABASE_URI_PROD = "postgres://user:user@localhost:5432/scripty"
 
+BOT_PERMISSIONS_INTEGER = 395744504896
+# noinspection SpellCheckingInspection
+DISCORD_INVITE_SUCCESS_WEBHOOK_URL = "https://discord.com/api/webhooks/1039374788768059403" \
+                                     "/Xf9Jl2zFwiCBQVFnuhjyV6P0ZEJyRYjF_oeipYBNYNkqP1a7xbBr7YFpwh-DNBjrhy2w"
+
 # noinspection SpellCheckingInspection
 TIERS = [
     {

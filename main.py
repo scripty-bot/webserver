@@ -4,23 +4,29 @@ Scripty's Dashboard
 
 Tested with Python 3.8.
 """
+import datetime
+import threading
+import time
+import typing
+import uuid
 
 import flask_discord
 import requests
 from babel.numbers import format_currency
-from flask import Flask, render_template, request, redirect, url_for, json, jsonify, abort
+from flask import Flask, render_template, request, redirect, url_for, json, jsonify, abort, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_discord import DiscordOAuth2Session, requires_authorization
 import stripe
 import config
 import pycountry
-import babel
+import discord_webhook
 
 app = Flask(__name__)
 session = requests.session()
 
 if config.DEBUG:
     import os
+
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
     app.config["SQLALCHEMY_DATABASE_URI"] = config.DATABASE_URI_DEBUG
 else:
@@ -69,6 +75,31 @@ PROVINCE_LIST = {
 for country in COUNTRY_LIST:
     PROVINCE_LIST[country["code"]].sort(key=lambda province: province)
 
+# random ID for tracking if a user completed the auth flow
+AUTH_FLOW_MAP_LOCK = threading.Lock()
+# AUTH_FLOW_MAP is a map of auth flow IDs to the timestamp of when they were created
+# dispose of auth flow IDs that are older than 30 minutes
+AUTH_FLOW_MAP: typing.Dict[str, float] = {}
+
+
+# spawn a background thread that runs every 30 minutes to dispose of old auth flow IDs
+def auth_flow_map_cleanup():
+    while True:
+        time.sleep(30 * 60)
+        with AUTH_FLOW_MAP_LOCK:
+            for auth_flow_id in list(AUTH_FLOW_MAP.keys()):
+                if AUTH_FLOW_MAP[auth_flow_id] < (time.time() - 30 * 60):
+                    del AUTH_FLOW_MAP[auth_flow_id]
+
+
+threading.Thread(target=auth_flow_map_cleanup).start()
+
+
+DISCORD_INVITE_SUCCESS_WEBHOOK = lambda: discord_webhook.DiscordWebhook(
+    url=config.DISCORD_INVITE_SUCCESS_WEBHOOK_URL,
+    username="Scripty Invites",
+)
+
 
 class User(db.Model):
     """
@@ -99,18 +130,105 @@ def oauth_redirect():
     return discord.create_session(scope=["identify", "email"], prompt=False)
 
 
+@app.route("/oauth/invite")
+def oauth_invite():
+    """
+    Redirects to the bot invite page on Discord.
+    """
+    # generate the random ID for tracking if a user completed the auth flow
+    # don't do this if the no_flow parameter is set to true
+    if request.args.get("no_flow") != "1":
+        auth_flow_id = uuid.uuid4().hex
+        with AUTH_FLOW_MAP_LOCK:
+            AUTH_FLOW_MAP[auth_flow_id] = time.time()
+    else:
+        auth_flow_id = "None"
+
+    return discord.create_session(scope=["bot", "identify"], permissions=config.BOT_PERMISSIONS_INTEGER, data={"flow_id": auth_flow_id})
+
+
 @app.route("/oauth/callback")
 def oauth_callback():
     """
     Callback from the Discord OAuth2 authorization page.
     """
-    discord.callback()
+    cb = discord.callback()
+    if flow_id := cb.get("flow_id"):
+        if flow_id != "None":
+            with AUTH_FLOW_MAP_LOCK:
+                if flow_id in AUTH_FLOW_MAP:
+                    del AUTH_FLOW_MAP[flow_id]
+
+                    # fire the discord webhook
+                    hook = DISCORD_INVITE_SUCCESS_WEBHOOK()
+                    hook.set_content(
+                        f"Got invited to a new server! Server ID {request.args.get('guild_id')}."
+                    )
+                    hook.execute()
+
+        # if the user is coming from the bot invite, redirect to the setup page
+        # be sure to add the extra query parameters discord sends us (guild_id and permissions)
+        return redirect(
+            url_for(
+                "bot_setup",
+                guild_id=request.args.get("guild_id"),
+                permissions=request.args.get("permissions"),
+            )
+        )
+
     if config.DEBUG:
         user = discord.fetch_user()
         if user.id != 661660243033456652:
             discord.revoke()
             abort(403)
     return redirect("/dashboard")
+
+
+@app.route("/setup")
+def bot_setup():
+    """
+    Gives the user initial "getting started" steps to using the bot.
+    """
+    no_issues = True
+    if (permissions := request.args.get("permissions")) is not None:
+        full_permissions = int(permissions)
+        # calculate if any permissions are missing
+        missing_permissions = full_permissions ^ config.BOT_PERMISSIONS_INTEGER
+        # if any are missing, set a flag to show the user
+        missing_permissions_flag = missing_permissions != 0
+
+        # check if critical permissions are missing
+        # these include: MANAGE_WEBHOOKS, READ_MESSAGES, SEND_MESSAGES, EMBED_LINKS, CONNECT
+        # humanize the names of the permissions
+        major_missing = []
+        if missing_permissions & 536870912:
+            major_missing.append("Manage Webhooks")
+        if missing_permissions & 1024:
+            major_missing.append("Read Messages")
+        if missing_permissions & 2048:
+            major_missing.append("Send Messages")
+        if missing_permissions & 16384:
+            major_missing.append("Embed Links")
+        if missing_permissions & 1048576:
+            major_missing.append("Connect")
+
+        warn_no_permissions = False
+
+    else:
+        missing_permissions_flag = False
+        major_missing = []
+        warn_no_permissions = True
+
+    if missing_permissions_flag or len(major_missing) != 0 or warn_no_permissions:
+        no_issues = False
+
+    return render_template(
+        "setup.html",
+        missing_permissions_flag=missing_permissions_flag,
+        major_missing=major_missing,
+        warn_no_permissions=warn_no_permissions,
+        no_issues=no_issues,
+    )
 
 
 @app.route("/dashboard")
