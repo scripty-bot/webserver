@@ -137,21 +137,14 @@
                            class="input form-input-disabled">
                 </div>
             </div>
-            <div class="field">
-                <label class="label">Phone Number</label>
-                <div class="control">
-                    <input type="tel" autocomplete="tel" name="phone_number" placeholder="Phone Number"
-                           class="input form-input-disabled">
-                </div>
-            </div>
 
-            <iframe src="https://scripty.org/terms" loading="lazy"
-                    style="height: 50vh; width: 100%; border: none; margin-top: 16px"></iframe>
             <div class="field">
                 <div class="control">
                     <label class="checkbox">
                         <input type="checkbox" required disabled class="form-input-disabled">
-                        I have read and agree to the above terms.
+                        I have read and agree to Scripty's <a href="https://scripty.org/terms">Terms of Service</a>,
+                        <a href="https://scripty.org/privacy">Privacy Policy</a>, and <a
+                                href="https://scripty.org/refunds">Refund Policy</a>.
                     </label>
                 </div>
             </div>
@@ -164,10 +157,10 @@
                 </tr>
                 <tr>
                     <td>Price</td>
-                    <td>US$ {{ price }}/{{ period }}</td>
+                    <td>{{ price }}/{{ period }}</td>
                 </tr>
             </table>
-            <input type="hidden" name="lookup_key" value="{{ lookup_key }}">
+            <input type="hidden" name="price_id" value="{{ price_id }}">
 
             By clicking this button, you confirm that all the data above is correct to the best of your knowledge.<br>
             <button class="button is-success" type="submit">Submit</button>

@@ -57,13 +57,37 @@
         </p>
         <a class="button is-link" style="float: none" href="{{ url_for('premium_stripe_redirect') }}">Manage Subscription</a>
     {% else %}
-        {% for tier in tiers %}
+        <section class="section ">
+            <h2 class="title is-3">Switch Currency</h2>
+            <div class="buttons has-addons is-centered">
+                {% for currency in currencies %}
+                    <a class="button {% if currency == active_currency %} is-info is-selected {% endif %}" href="{{ url_for('premium_index', currency=currency) }}">
+                        <img src="https://scripty.org/img/currencies/{{ currency.lower() }}.svg" alt="{{ currency }}"
+                             style="height: 1.5em; width: 1.5em; margin-right: 0.5em">
+                        <span>{{ currency }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        {% if pending_free_trial %}
             <section class="section">
-                <h3 class="title is-3">{{ tier.name }}</h3>
+                <h2 class="title is-2">Free Trial</h2>
+                <p>
+                    You have an unclaimed free trial of Scripty Premium!
+                    To claim it, pick any subscription length of Tier 1 below.
+                    You will not be charged until your trial ends, and can cancel at any time.
+                </p>
+            </section>
+        {% endif %}
+
+        {% for price in prices %}
+            <section class="section">
+                <h3 class="title is-3">{{ price.name }}</h3>
 
                 <h4 class="title is-4">Features</h4>
                 <div class="columns is-multiline is-centered is-vcentered">
-                    {% for feature in tier.features %}
+                    {% for feature in price.features %}
                         <div class="column is-3">
                             <p class="subtitle is-6">{{ feature }}</p>
                         </div>
@@ -73,25 +97,25 @@
                 <div class="columns is-multiline is-centered is-vcentered">
                     <div class="column is-one-quarter">
                         <h4 class="title is-4">Weekly</h4>
-                        <p class="subtitle is-6">US${{ "{:20,.2f}".format(tier.weekly_price) }}</p>
+                        <p class="subtitle is-6">{{ price["prices"]["week"]["formatted_price"] }}</p>
                         <form action="{{ url_for('premium_checkout') }}" method="post">
-                            <input type="hidden" name="lookup_key" value="{{ tier.base_lookup_key }}_weekly">
+                            <input type="hidden" name="price_id" value="{{ price["prices"]["week"]["price_id"] }}">
                             <button class="button is-success" type="submit">Checkout</button>
                         </form>
                     </div>
                     <div class="column is-one-quarter">
                         <h4 class="title is-4">Monthly</h4>
-                        <p class="subtitle is-6">US${{ "{:20,.2f}".format(tier.monthly_price) }}</p>
+                        <p class="subtitle is-6">{{ price["prices"]["month"]["formatted_price"] }}</p>
                         <form action="{{ url_for('premium_checkout') }}" method="post">
-                            <input type="hidden" name="lookup_key" value="{{ tier.base_lookup_key }}_monthly">
+                            <input type="hidden" name="price_id" value="{{ price["prices"]["month"]["price_id"] }}">
                             <button class="button is-success" type="submit">Checkout</button>
                         </form>
                     </div>
                     <div class="column is-one-quarter">
                         <h4 class="title is-4">Yearly</h4>
-                        <p class="subtitle is-6">US${{ "{:20,.2f}".format(tier.yearly_price) }}</p>
+                        <p class="subtitle is-6">{{ price["prices"]["year"]["formatted_price"] }}</p>
                         <form action="{{ url_for('premium_checkout') }}" method="post">
-                            <input type="hidden" name="lookup_key" value="{{ tier.base_lookup_key }}_yearly">
+                            <input type="hidden" name="price_id" value="{{ price["prices"]["year"]["price_id"] }}">
                             <button class="button is-success" type="submit">Checkout</button>
                         </form>
                     </div>
