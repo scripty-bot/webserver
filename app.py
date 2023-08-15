@@ -43,24 +43,6 @@ stripe.api_key = config.STRIPE_PRIVATE_API_KEY
 discord = DiscordOAuth2Session(app)
 db = SQLAlchemy(app)
 
-
-def replace_item(obj, key, replace_value):
-    """
-    Recursively replace a value in a dictionary.
-
-    :param obj: The dictionary object.
-    :param key: The key that contains the value to replace.
-    :param replace_value: The value to replace in the key.
-    :return: The updated dictionary.
-    """
-    for k, v in obj.items():
-        if isinstance(v, dict):
-            obj[k] = replace_item(v, key, replace_value)
-    if key in obj:
-        obj[key] = replace_value
-    return obj
-
-
 COUNTRY_LIST = [
     {"name": country.name, "code": country.alpha_2} for country in pycountry.countries
 ]
@@ -113,8 +95,8 @@ class User(db.Model):
     discord_id = db.Column(db.BigInteger, primary_key=True)
     stripe_customer_id = db.Column(db.String)
     stripe_subscription_id = db.Column(db.String)
-    subscribed = db.Column(db.Boolean)
-    free_trial_pending = db.Column(db.Boolean)
+    subscribed = db.Column(db.Boolean, default=False, nullable=False, server_default=False)
+    free_trial_pending = db.Column(db.Boolean, default=False, nullable=False, server_default=False)
 
     def __repr__(self):
         return f"<User {self.discord_id}>"
