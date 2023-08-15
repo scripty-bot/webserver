@@ -19,6 +19,8 @@ from flask import Flask, render_template, request, redirect, url_for, json, json
 from flask_sqlalchemy import SQLAlchemy
 from flask_discord import DiscordOAuth2Session, requires_authorization
 import stripe
+from sqlalchemy import text
+
 import config
 import pycountry
 import discord_webhook
@@ -95,8 +97,8 @@ class User(db.Model):
     discord_id = db.Column(db.BigInteger, primary_key=True)
     stripe_customer_id = db.Column(db.String)
     stripe_subscription_id = db.Column(db.String)
-    subscribed = db.Column(db.Boolean, default=False, nullable=False, server_default=False)
-    free_trial_pending = db.Column(db.Boolean, default=False, nullable=False, server_default=False)
+    subscribed = db.Column(db.Boolean, default=False, nullable=False, server_default=text("false"))
+    free_trial_pending = db.Column(db.Boolean, default=False, nullable=False, server_default=text("false"))
 
     def __repr__(self):
         return f"<User {self.discord_id}>"
