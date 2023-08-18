@@ -117,6 +117,9 @@ def oauth_invite():
     """
     Redirects to the bot invite page on Discord.
     """
+    oauth_data = {}
+    scopes = ["bot", "identify"]
+
     # generate the random ID for tracking if a user completed the auth flow
     # don't do this if the no_flow parameter is set to true
     if request.args.get("no_flow") != "1":
@@ -125,9 +128,19 @@ def oauth_invite():
             AUTH_FLOW_MAP[auth_flow_id] = time.time()
     else:
         auth_flow_id = "None"
+    oauth_data["flow_id"] = auth_flow_id
 
-    return discord.create_session(scope=["bot", "identify"], permissions=config.BOT_PERMISSIONS_INTEGER,
-                                  data={"flow_id": auth_flow_id})
+    # check if the user requested being added to the support server
+    if request.args.get("support_server") == "1":
+        # additionally request the guilds.join scope
+        scopes.append("guilds.join")
+        # and add a query parameter to the redirect URL
+        oauth_data["support_server"] = "1"
+    else:
+        oauth_data["support_server"] = "0"
+
+    return discord.create_session(scope=scopes, permissions=config.BOT_PERMISSIONS_INTEGER,
+                                  data=oauth_data)
 
 
 @app.route("/oauth/callback")
@@ -139,6 +152,11 @@ def oauth_callback():
         cb = discord.callback()
     except (jwt.exceptions.PyJWTError, oauthlib.oauth2.rfc6749.errors.OAuth2Error):
         raise BadRequest("Invalid OAuth2 data: don't mess with the URL parameters!")
+
+    # check if the user requested being added to the support server
+    if cb.get("support_server") == "1":
+        # add the user to the support server
+        discord.fetch_user().add_to_guild(config.SUPPORT_SERVER_ID)
 
     if flow_id := cb.get("flow_id"):
         if flow_id != "None":

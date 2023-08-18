@@ -21,6 +21,9 @@ DISCORD_SECRET_KEY = 'gjanperiuj4309jg43n0g409i42g0nhj'
 # noinspection SpellCheckingInspection
 DISCORD_CLIENT_ID = "696969696969696969"
 
+# noinspection SpellCheckingInspection
+SUPPORT_SERVER_ID = "696969696969696969"
+
 # Bot API Config
 
 BOT_API_URL = "http://localhost:6969"
