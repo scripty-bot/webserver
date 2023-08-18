@@ -15,7 +15,7 @@ import jwt
 import oauthlib.oauth2.rfc6749.errors
 import requests
 from babel.numbers import format_currency
-from flask import Flask, render_template, request, redirect, url_for, json, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_discord import DiscordOAuth2Session, requires_authorization
 import stripe
@@ -312,11 +312,25 @@ def premium_checkout():
     if user_db is not None and user_db.stripe_customer_id is not None:
         # skip filling in details and immediately redirect to Stripe
         return redirect(url_for("premium_checkout_redirect", price_id=price_id), 303)
+    elif user_db is None:
+        # create the user in the DB
+        user_db = User(discord_id=user.id)
+        db.session.add(user_db)
+        db.session.commit()
 
     price = stripe.Price.retrieve(
         price_id,
         expand=["product"],
     )
+
+    tier = price.product.metadata.get("tier")
+    try:
+        tier = int(tier)
+    except ValueError:
+        raise BadRequest("Invalid tier.")
+    wants_free_trial = user_db.free_trial_pending
+    free_trial_eligible = tier == 1 and wants_free_trial
+
     tier_name = price.product.name
     # format the price nicely
     price_fmt = format_currency(price.unit_amount / 100, price.currency.upper())  # why is the currency case-sensitive?
@@ -329,7 +343,9 @@ def premium_checkout():
         price=price_fmt,
         period=period,
         price_id=price_id,
-        countries=COUNTRY_LIST
+        countries=COUNTRY_LIST,
+        wants_free_trial=wants_free_trial,
+        free_trial_eligible=free_trial_eligible,
     )
 
 
@@ -391,7 +407,19 @@ def premium_checkout_redirect():
             user_db.stripe_customer_id = customer.id
         db.session.commit()
 
-    # does the user have a free trial pending?
+    subscription_data = {}
+    if user_db.free_trial_pending:
+        # remove the free trial pending flag
+        user_db.free_trial_pending = False
+        db.session.commit()
+
+        # add it to the session
+        subscription_data["trial_period_days"] = 3
+        subscription_data["trial_settings"] = {
+            "end_behavior": {
+                "missing_payment_method": "cancel"
+            },
+        }
 
     # create a checkout session
     checkout_session = stripe.checkout.Session.create(
@@ -409,6 +437,7 @@ def premium_checkout_redirect():
         success_url=config.SITE_URL + "/premium/success?session_id={CHECKOUT_SESSION_ID}",
         cancel_url=config.SITE_URL + "/premium",
         customer=user_db.stripe_customer_id,
+        subscription_data=subscription_data,
     )
 
     return redirect(checkout_session.url, code=303)
@@ -433,9 +462,9 @@ def premium_success():
     return render_template("premium_success.html")
 
 
-@app.route("/premium/free_trial", methods=["POST"])
+@app.route("/premium/create_free_trial", methods=["POST"])
 @requires_authorization
-def premium_free_trial():
+def premium_create_free_trial():
     # check if the authenticated user has admin permissions
     user = discord.fetch_user()
     discord_id = user.id

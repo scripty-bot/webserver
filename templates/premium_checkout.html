@@ -149,6 +149,29 @@
                 </div>
             </div>
 
+            {% if wants_free_trial %}
+                {% if free_trial_eligible %}
+                    <div class="field">
+                        <div class="control">
+                            <label class="checkbox">
+                                <input type="checkbox" name="free_trial" required disabled class="form-input-disabled">
+                                I understand that I will be charged {{ price }}/{{ period }} after the free trial ends.
+                                I also understand that I can cancel at any time before the free trial ends, and I will
+                                not be charged.
+                            </label>
+                        </div>
+                    </div>
+                {% else %}
+                    <h3>Free Trial Pending!</h3>
+                    <p>
+                        You're currently eligible for a free trial. However, it appears you're on the wrong tier to
+                        receive it.<br>
+                        Downgrade to Tier 1 to receive a free trial.
+                    </p>
+                {% endif %}
+
+            {% endif %}
+
             <h3>Confirm Your Order</h3>
             <table align="center" class="table">
                 <tr>
