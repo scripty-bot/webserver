@@ -152,6 +152,8 @@ def oauth_callback():
         cb = discord.callback()
     except (jwt.exceptions.PyJWTError, oauthlib.oauth2.rfc6749.errors.OAuth2Error):
         raise BadRequest("Invalid OAuth2 data: don't mess with the URL parameters!")
+    except flask_discord.AccessDenied:
+        return render_template("oauth_rejected.html")
 
     # check if the user requested being added to the support server
     if cb.get("support_server") == "1":
