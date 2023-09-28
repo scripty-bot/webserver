@@ -74,7 +74,7 @@ def auth_flow_map_cleanup():
                     del AUTH_FLOW_MAP[auth_flow_id]
 
 
-threading.Thread(target=auth_flow_map_cleanup).start()
+threading.Thread(target=auth_flow_map_cleanup, daemon=True).start()
 
 DISCORD_INVITE_SUCCESS_WEBHOOK = lambda: discord_webhook.DiscordWebhook(
     url=config.DISCORD_INVITE_SUCCESS_WEBHOOK_URL,
