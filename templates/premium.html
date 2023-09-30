@@ -98,7 +98,7 @@
                     <div class="column is-one-quarter">
                         <h4 class="title is-4">Weekly</h4>
                         <p class="subtitle is-6">{{ price["prices"]["week"]["formatted_price"] }}</p>
-                        <form action="{{ url_for('premium_checkout') }}" method="post">
+                        <form action="{{ url_for('premium_checkout_redirect') }}" method="post">
                             <input type="hidden" name="price_id" value="{{ price["prices"]["week"]["price_id"] }}">
                             <button class="button is-success" type="submit">Checkout</button>
                         </form>
@@ -106,7 +106,7 @@
                     <div class="column is-one-quarter">
                         <h4 class="title is-4">Monthly</h4>
                         <p class="subtitle is-6">{{ price["prices"]["month"]["formatted_price"] }}</p>
-                        <form action="{{ url_for('premium_checkout') }}" method="post">
+                        <form action="{{ url_for('premium_checkout_redirect') }}" method="post">
                             <input type="hidden" name="price_id" value="{{ price["prices"]["month"]["price_id"] }}">
                             <button class="button is-success" type="submit">Checkout</button>
                         </form>
@@ -114,7 +114,7 @@
                     <div class="column is-one-quarter">
                         <h4 class="title is-4">Yearly</h4>
                         <p class="subtitle is-6">{{ price["prices"]["year"]["formatted_price"] }}</p>
-                        <form action="{{ url_for('premium_checkout') }}" method="post">
+                        <form action="{{ url_for('premium_checkout_redirect') }}" method="post">
                             <input type="hidden" name="price_id" value="{{ price["prices"]["year"]["price_id"] }}">
                             <button class="button is-success" type="submit">Checkout</button>
                         </form>

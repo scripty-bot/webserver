@@ -318,128 +318,46 @@ def premium_stripe_redirect():
     return redirect(portal_session.url, 303)
 
 
-@app.route("/premium/checkout", methods=["POST"])
-@requires_authorization
-def premium_checkout():
-    user = discord.fetch_user()
-
-    # fetch the price ID from the form
-    price_id = request.form["price_id"]
-
-    # try to fetch the user from the DB
-    user_db = User.query.filter_by(discord_id=user.id).first()
-    # if it exists, check for a stripe customer ID
-    if user_db is not None and user_db.stripe_customer_id is not None:
-        # skip filling in details and immediately redirect to Stripe
-        return redirect(url_for("premium_checkout_redirect", price_id=price_id), 303)
-    elif user_db is None:
-        # create the user in the DB
-        user_db = User(discord_id=user.id)
-        db.session.add(user_db)
-        db.session.commit()
-
-    price = stripe.Price.retrieve(
-        price_id,
-        expand=["product"],
-    )
-
-    tier = price.product.metadata.get("tier")
-    try:
-        tier = int(tier)
-    except ValueError:
-        raise BadRequest("Invalid tier.")
-    wants_free_trial = user_db.free_trial_pending
-    free_trial_eligible = tier == 1 and wants_free_trial
-
-    tier_name = price.product.name
-    # format the price nicely
-    price_fmt = format_currency(price.unit_amount / 100, price.currency.upper())  # why is the currency case-sensitive?
-    period = price.recurring.interval
-
-    return render_template(
-        "premium_checkout.html",
-        user=f"{user.username}#{user.discriminator}",
-        tier_name=tier_name,
-        price=price_fmt,
-        period=period,
-        price_id=price_id,
-        countries=COUNTRY_LIST,
-        wants_free_trial=wants_free_trial,
-        free_trial_eligible=free_trial_eligible,
-    )
-
-
-@app.route("/premium/checkout/redirect", methods=["POST", "GET"])
+@app.route("/premium/checkout/redirect", methods=["POST"])
 @requires_authorization
 def premium_checkout_redirect():
     user = discord.fetch_user()
     user_email = user.email
 
-    price_id = request.args.get("price_id") if request.method == "GET" else request.form["price_id"]
+    price_id = request.form["price_id"]
 
     # try fetching the user from the DB
     user_db = User.query.filter_by(discord_id=user.id).first()
-    if user_db is None or user_db.stripe_customer_id is None:
-        if request.method == "GET":
-            raise MethodNotAllowed("GET")
-
-        # the incoming form has all these fields
-        try:
-            full_name = request.form["full_name"]
-            address_line_1 = request.form["address_line_1"]
-            address_line_2 = request.form["address_line_2"]
-            city = request.form["city"]
-            province = request.form["province"]
-            postal_code = request.form["postal_code"]
-            country = request.form["country"]
-        except KeyError:
-            raise BadRequest("Missing form data.")
-
-        # validate the data
-        if len(country) != 2:  # expect a 2-letter country code
-            raise BadRequest("Invalid country code, it should be ISO 3166-1 alpha-2 format.")
-        # check all the fields are filled in
-        if not all([full_name, address_line_1, city, province, postal_code, country]):
-            raise BadRequest("Missing form data.")
-
-        # create a Stripe customer from this data
-        customer = stripe.Customer.create(
-            email=user_email,
-            name=full_name,
-            address={
-                "line1": address_line_1,
-                "line2": address_line_2,
-                "city": city,
-                "state": province,
-                "postal_code": postal_code,
-                "country": country
-            },
-            metadata={
-                "discord_id": user.id,
-            }
-        )
-
-        # update the existing user in the DB or create a new one if it doesn't exist
-        if user_db is None:
-            user_db = User(discord_id=user.id, stripe_customer_id=customer.id)
-            db.session.add(user_db)
-        else:
-            user_db.stripe_customer_id = customer.id
+    if user_db is None:
+        # create the user in the DB
+        user_db = User(discord_id=user.id)
+        db.session.add(user_db)
         db.session.commit()
 
-    subscription_data = {}
-    if user_db.free_trial_pending:
-        # remove the free trial pending flag
-        user_db.free_trial_pending = False
-        db.session.commit()
-
-        # add it to the session
-        subscription_data["trial_period_days"] = 3
-        subscription_data["trial_settings"] = {
-            "end_behavior": {
-                "missing_payment_method": "cancel"
-            },
+    subscription_data = {
+        "metadata": {
+            "discord_id": user.id,
         }
+    }
+    if user_db.free_trial_pending:
+        # add it to the session (only if we've selected a tier 1 product)
+        price = stripe.Price.retrieve(
+            price_id,
+            expand=["product"],
+        )
+        tier = price.product.metadata.get("tier")
+        try:
+            tier = int(tier)
+        except ValueError:
+            raise BadRequest("Invalid tier.")
+        if tier == 1:
+            subscription_data["trial_period_days"] = 3
+            subscription_data["trial_settings"] = {
+                "end_behavior": {
+                    "missing_payment_method": "cancel"
+                },
+            }
+        # we unset the free trial pending flag in the webhook
 
     # create a checkout session
     checkout_session = stripe.checkout.Session.create(
@@ -449,15 +367,22 @@ def premium_checkout_redirect():
                 "quantity": 1,
             },
         ],
+        customer_email=user_email,
         automatic_tax={
             'enabled': True,
         },
         mode="subscription",
         allow_promotion_codes=True,
+        billing_address_collection="required",
+        consent_collection={
+            "terms_of_service": "required",
+        },
         success_url=config.SITE_URL + "/premium/success?session_id={CHECKOUT_SESSION_ID}",
         cancel_url=config.SITE_URL + "/premium",
-        customer=user_db.stripe_customer_id,
         subscription_data=subscription_data,
+        metadata={
+            "discord_id": user.id,
+        }
     )
 
     return redirect(checkout_session.url, code=303)
@@ -467,6 +392,8 @@ def premium_checkout_redirect():
 @requires_authorization
 def premium_success():
     checkout_session_id = request.args.get("session_id")
+    if checkout_session_id is None:
+        raise BadRequest("Missing session ID.")
     checkout_session = stripe.checkout.Session.retrieve(checkout_session_id)
     # add the customer ID to the DB
     user = discord.fetch_user()
@@ -511,7 +438,6 @@ def webhook_received():
     try:
         root_event = stripe.Webhook.construct_event(
             payload=request.data, sig_header=signature, secret=config.STRIPE_WEBHOOK_SECRET)
-        print(root_event)
         data = root_event['data']
     except Exception as e:
         return e
@@ -559,28 +485,45 @@ def webhook_received():
         print("Status", data_object["status"])
 
         # Get the user from the DB
-        # If we're not in live mode, fake a user ID of 0 if none exists
         user_db = User.query.filter_by(stripe_customer_id=data_object['customer']).first()
         if user_db is None:
-            if not is_live:
-                discord_id = config.DEBUG_FALLBACK_ID
-            else:
-                return jsonify({'status': 'success'})
+            # try fetching it from the subscription's metadata
+            try:
+                discord_id = int(data_object["metadata"]["discord_id"])
+                # try fetching the user from the DB again with their Discord ID
+                user_db = User.query.filter_by(discord_id=discord_id).first()
+                if user_db is None:
+                    # create them
+                    user_db = User(discord_id=discord_id, stripe_customer_id=data_object['customer'])
+                # update the user in the DB
+                user_db.free_trial_pending = False
+                user_db.subscribed = True
+                user_db.stripe_subscription_id = data_object["items"]["data"][0]["id"]
+                db.session.add(user_db)
+                db.session.commit()
+            except KeyError:
+                if is_live:
+                    # no metadata, so we can't do anything
+                    return jsonify({'status': 'success'})
+                else:
+                    discord_id = config.DEBUG_FALLBACK_ID
         else:
             # Update the user in the DB
+            user_db.free_trial_pending = False
             user_db.subscribed = True
             user_db.stripe_subscription_id = data_object["items"]["data"][0]["id"]
             db.session.commit()
             discord_id = user_db.discord_id
 
         # if the subscription is not active, we don't care about it yet
-        if data_object["status"] != "active":
+        if data_object["status"] not in ["active", "trialing"]:
             return jsonify({'status': 'success'})
 
         # To grab the metadata, we need to grab the plan's product ID, then grab the metadata from that
         product_id = data_object["plan"]["product"]
         product = stripe.Product.retrieve(product_id)
         tier = int(product["metadata"]["tier"])
+        is_trial = data_object["status"] == "trialing"
 
         # Prepare the event object
         json_model = {
@@ -589,7 +532,9 @@ def webhook_received():
             "event": {
                 "t": "customer.subscription.created",
                 "c": {
-                    "tier": tier
+                    "tier": tier,
+                    "is_trial": is_trial,
+                    "trial_end": data_object.get("trial_end"),
                 }
             }
         }
@@ -616,11 +561,18 @@ def webhook_received():
 
         # if data["previous_attributes"]["status"] was not "active" or "trialing," and data["status"] is "active," then
         # the subscription has succeeded
-        currently_active = data_object["status"] == "active"
+        currently_active = data_object["status"] in ["active", "trialing"]
         try:
             is_new = data_previous["status"] not in ["active", "trialing"] and currently_active
         except KeyError:
             is_new = False
+
+        # if data["previous_attributes"]["status"] was "trialing", and data["status"] is "active", then
+        # the subscription has been converted from a trial to a paid subscription
+        try:
+            trial_finished = data_previous["status"] == "trialing" and data_object["status"] == "active"
+        except KeyError:
+            trial_finished = False
 
         # if the previous plan's product ID is not equal to the current plan's product ID, then the subscription
         # has changed tiers
@@ -673,7 +625,9 @@ def webhook_received():
                     "is_renewal": is_renewed,
                     "is_length_change": is_length_change,
                     "is_new": is_new,
-                    "is_tier_change": is_tier_change
+                    "is_tier_change": is_tier_change,
+                    "trial_finished": trial_finished,
+                    "interval": current_interval,
                 }
             }
         }
@@ -797,6 +751,16 @@ def webhook_received():
             }
         }
 
+    elif event_type == "customer.deleted":
+        # fetch the customer ID from the event
+        stripe_customer_id = data_object["id"]
+        # delete the user from the DB
+        user_db = User.query.filter_by(stripe_customer_id=stripe_customer_id).first()
+        if user_db is not None:
+            db.session.delete(user_db)
+            db.session.commit()
+        # no event to fire here, as Stripe will fire customer.subscription.deleted
+
     else:
         # no need to handle this event
         pass
@@ -809,10 +773,9 @@ def webhook_received():
             json=json_model,
             headers={"Authorization": config.BOT_API_TOKEN}
         )
-        print(resp.status_code)
         # if not successful, log the error
         if resp.status_code != 200:
-            print(resp.text)
+            print(resp.status_code, resp.text)
     else:
         print("No webhook fired")
 
