@@ -248,6 +248,9 @@ def dashboard_index():
 @requires_authorization
 def premium_index():
     user = discord.fetch_user()
+    if user.email is None:
+        # need an email to continue
+        return redirect(url_for("oauth_redirect"))
     # fetch user from the DB
     user_db = User.query.filter_by(discord_id=user.id).first()
     if user_db is None:
