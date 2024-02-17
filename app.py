@@ -501,6 +501,7 @@ def webhook_received():
                 # update the user in the DB
                 user_db.free_trial_pending = False
                 user_db.subscribed = True
+                user_db.stripe_customer_id = data_object['customer']  # avoid bad state
                 user_db.stripe_subscription_id = data_object["items"]["data"][0]["id"]
                 db.session.add(user_db)
                 db.session.commit()
@@ -514,6 +515,7 @@ def webhook_received():
             # Update the user in the DB
             user_db.free_trial_pending = False
             user_db.subscribed = True
+            user_db.stripe_customer_id = data_object['customer']  # avoid bad state
             user_db.stripe_subscription_id = data_object["items"]["data"][0]["id"]
             db.session.commit()
             discord_id = user_db.discord_id
