@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Scripty | Setup</title>
+    <title>Scripty | Getting Started</title>
 
     <link rel="preload" href="https://scripty.org/assets/jb_mono/woff2/jb.woff2" as="font" type="font/woff2"
           crossorigin="">
@@ -15,8 +15,8 @@
     <meta name="description" content="Setup instructions for Scripty">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta property="og:title" content="Scripty - Setup">
-    <meta property="og:description" content="Setup instructions for Scripty">
+    <meta property="og:title" content="Scripty - Getting Started">
+    <meta property="og:description" content="Short getting started guide for Scripty">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://scripty.org/setup">
     <meta property="og:image" content="https://scripty.org/img/icon-128.webp">
@@ -104,119 +104,47 @@
 
     <hr>
 
-    <h2>Getting Started</h2>
+    <h2>Quick Start</h2>
     <p>
-        To get started, ensure you have a channel dedicated to Scripty's output.<br>
-        Scripty can spam a lot when there's a lot of activity in VC,
-        so it's best to keep it in a separate channel.<br>
-        What it's named is up to you. For this guide, we'll call it <code>#transcriptions</code>.
+        If you just want to get started with Scripty, and you speak English in your server,
+        just run <code>/join</code> in the channel you want to send transcripts to.<br>
+        Scripty will join the channel and start transcribing.
     </p>
+    <hr>
 
-    <h2>Step 1</h2>
+    <h2>Changing Settings</h2>
+    <p>Changing any settings requires Scripty to leave and rejoin the channel to apply.</p>
+    <h3>Language</h3>
     <p>
-        Head into the channel you made for Scripty's output, and type <code>/setup</code>.<br>
-        This slash command has a few required arguments, and a few optional ones.<br>
-
-        You will immediately be prompted to select a channel to output to.<br>
-        <img
-                src="https://scripty.org/img/setup_guide/step_1a.png"
-                alt="A screenshot of the Discord slash command picker with Scripty's setup command
-                 open and the first argument selected, showing a list of channels."
-                width="819"
-                height="515"
-                loading="lazy">
-        <br>
-        Select the channel you made for Scripty's output.<br>
-
-        Optionally, you can select the server's language, and whether Scripty should be verbose.<br>
-        These default to English and off, respectively.<br>
-        If you would like to see more about these options, continue to Step 1a.
-        Otherwise, submit the slash command and continue to Step 2.<br>
+        If you speak a language other than English, you can change the language Scripty transcribes in.<br>
+        To do so, type <code>/config language</code>, followed by the language code.
+        In the future, this list of languages will be rewritten to be more user-friendly,
+        but for now, you can find your language code on 
+        <a href="https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes" target="_blank">Wikipedia</a>.<br>
+        Changing this setting also changes the language Scripty responds in,
+        if Scripty is translated into that language.
     </p>
-
-    <h2>Step 1a</h2>
+    <h3>Transcribing only some users</h3>
     <p>
-        You can optionally set Scripty's language and verbosity.<br><br>
-
-        The language is useful if your server does not speak English.<br>
-        Scripty will only listen for voice in the language you select, so it should be the language
-        your server, or most members, use in voice chats.<br>
-        Currently, Scripty only supports a small number of languages, but more are planned.<br>
-        <img
-                src="https://scripty.org/img/setup_guide/step_1b.png"
-                alt="A screenshot of the Discord slash command picker with Scripty's setup command
-                 open and the language argument selected, showing a list of languages."
-                width="794"
-                height="254"
-                loading="lazy">
-        <br><br>
-
-        The verbosity option is useful only if you want to see more of what Scripty is doing.<br>
-        We recommend leaving it off, as it can be quite spammy.
-        <br><br>
-
-        Once you've selected your options, submit the slash command and continue to Step 2.
+        Scripty supports picking a role of users to exclusively transcribe.<br>
+        Run <code>/config transcribe_only_role</code> and pick the role from the slash command menu.
+        To disable this feature, run the command, but do not select a role.
     </p>
-
-    <h2>Step 2</h2>
+    <h3>Translating to English</h3>
     <p>
-        You will be prompted to agree to Scripty's privacy policy and terms of service.<br>
-        You can also find a link to both below.<br>
-        <img src="https://scripty.org/img/setup_guide/step_2a.png"
-             alt="A screenshot of the submitted slash command and Scripty's response, showing a link
-              to the privacy policy and terms of service. Two buttons are attached to the message,
-              one to agree and one to disagree."
-             width="807"
-             height="501"
-             loading="lazy">
-        <br><br>
-
-        <a href="https://scripty.org/privacy" target="_blank" class="button is-outlined is-transparent">Privacy Policy</a><br><br>
-        <a href="https://scripty.org/terms" target="_blank" class="button is-outlined is-transparent">Terms of Service</a><br>
-        <br>
-
-        If you agree, click the <code>Agree</code> button and continue to Step 3.<br>
-        If you disagree, click the <code>Disagree</code> button. This will halt the setup process.<br>
+        Scripty can try to translate voice in any language to English text,
+        but it is inaccurate and may not work well with some languages.<br>
+        That said, if you'd like to try it, run <code>/config translate True</code>.
     </p>
-
-    <h2>Step 3</h2>
+    <h3>Disabling transcription of voice messages</h3>
     <p>
-        This completes the setup process.<br>
-        You can now make Scripty join a voice channel and start transcribing.<br>
-        To do so, you must first join a voice channel, then type <code>/join</code> in any channel.<br>
-        <img src="https://scripty.org/img/setup_guide/step_3a.png"
-             alt="A screenshot of the join command in Discord, showing the command and Scripty's
-              response."
-             width="795"
-             height="394"
-             loading="lazy">
-        <br><br>
-
-        <i>Hint:</i> the <code>/join</code> command accepts an optional argument, a voice channel
-        to join. If you don't specify one, Scripty will join the channel you're in.<br>
+        Voice messages can be sent from any Discord mobile app.
+        By default, Scripty transcribes these and sends the result to the same channel.<br>
+        You can disable this by running <code>/config transcribe_voice_messages False</code>.
     </p>
+    <hr>
 
-    <h2>Step 4</h2>
-    <p>
-        Now try speaking something into your microphone.<br>
-        Given up to 10 seconds, Scripty should transcribe what you said.<br>
-        Keep in mind that Scripty is continually evolving, so it very likely will not be perfect.<br>
-        That's okay! It's still learning.<br>
-    </p>
-
-    <h2>Step 5</h2>
-    <p>
-        If you'd like to stop Scripty from transcribing, you can type <code>/leave</code> in any
-        channel.<br>
-        <img src="https://scripty.org/img/setup_guide/step_5a.png"
-             alt="A screenshot of the leave command in Discord, showing the command and Scripty's
-              response."
-             width="795"
-             height="155"
-             loading="lazy">
-        <br><br>
-    </p>
-    <h3>Note</h3>
+    <h2>Note</h2>
     <p>
         To prevent abuse of our service, we limit both how long you can use Scripty in a single
         channel, and how many users can use Scripty in a single channel.<br>
@@ -230,6 +158,7 @@
         <a href="https://scripty.org/premium" target="_blank">Premium plans</a>.<br>
         We massively appreciate your support!
     </p>
+    <hr>
 
     <h2>Closing Notes</h2>
     <p>
